@@ -48,3 +48,20 @@ object A extends App {
 
   println(c.asJson)
 }
+
+
+object SealedTraitCodecSample extends App {
+
+  sealed trait Event
+
+  case class A(msg: String) extends Event
+
+  case class B(msg: String) extends Event
+
+  implicit val codec: Codec[Event] = deriveCodec[Event]
+
+  import io.circe.syntax._
+
+  val a: Event = A("heelo")
+  println(a.asJson)
+}
