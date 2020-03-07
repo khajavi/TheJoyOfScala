@@ -1,3 +1,5 @@
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.collection.NonEmpty
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
@@ -52,9 +54,13 @@ object A extends App {
 
 object SealedTraitCodecSample extends App {
 
+  import io.circe.refined._
+  import eu.timepit.refined.auto._
   sealed trait Event
 
-  case class A(msg: String) extends Event
+  type Message = Refined[String, NonEmpty]
+
+  case class A(msg: Message) extends Event
 
   case class B(msg: String) extends Event
 
@@ -62,6 +68,7 @@ object SealedTraitCodecSample extends App {
 
   import io.circe.syntax._
 
-  val a: Event = A("heelo")
+  val a: Event = A("hello")
+  val b        = implicitly[Codec[Event]]
   println(a.asJson)
 }
