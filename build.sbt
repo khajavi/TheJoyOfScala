@@ -13,6 +13,7 @@ val circeVersion = "0.12.3"
 libraryDependencies ++= Seq(
   "io.circe" %% "circe-core",
   "io.circe" %% "circe-generic",
+  "io.circe" %% "circe-refined",
   "io.circe" %% "circe-parser"
 ).map(_ % circeVersion)
 
@@ -36,4 +37,16 @@ val monix        = Seq(
   "io.monix" %% "monix-eval"
 ).map(_ % monixVersion)
 
-libraryDependencies ++= monix
+val refinedVersion = "0.9.10"
+val refined = Seq(
+  "eu.timepit" %% "refined",
+  "eu.timepit" %% "refined-cats"
+).map(_ % refinedVersion)
+
+libraryDependencies ++= monix ++ refined
+//scalacOptions += "-Ypartial-unification"
+addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
+
+
+libraryDependencies += "dev.zio" %% "zio" % "1.0.0-RC17"
+libraryDependencies += "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC10"
