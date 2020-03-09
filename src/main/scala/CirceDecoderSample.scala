@@ -28,30 +28,6 @@ object CirceDecoderSample extends App {
   SolrDoc(SolrResponse(Seq(Article()))).asJson
 }
 
-
-trait Currency {
-  val value: Int
-}
-
-object Currency {
-  def apply(value: Int): Currency = new Currency {
-    override val value: Int = value
-  }
-
-  def unapply(arg: Currency): Some[Int] = Some(arg.value)
-
-  implicit val currencyCodec = deriveCodec[Currency]
-}
-
-object A extends App {
-  val c = Currency(5)
-
-  import io.circe.syntax._
-
-  println(c.asJson)
-}
-
-
 object SealedTraitCodecSample extends App {
 
   import io.circe.refined._
