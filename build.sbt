@@ -14,6 +14,7 @@ val circeVersion = "0.12.3"
 lazy val tsecSamples = (project in file("tsec-samples"))
 lazy val simulacrum = (project in file("simulacrum"))
 lazy val simulacrumExample = (project in file("simulacrum-example")).dependsOn(simulacrum)
+lazy val kindProjector = (project in file("kind-projector"))
 
 libraryDependencies ++= Seq(
   "io.circe" %% "circe-core",
