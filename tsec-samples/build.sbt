@@ -2,18 +2,13 @@ name := "TheJoyOfScala"
 
 version := "0.1"
 
-scalaVersion := "2.13.1"
+scalaVersion := "2.12.10"
 
 libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.30"
 
 libraryDependencies += "com.chuusai" %% "shapeless" % "2.3.3"
 
 val circeVersion = "0.12.3"
-
-
-lazy val tsecSamples = (project in file("tsec-samples"))
-lazy val simulacrum = (project in file("simulacrum"))
-lazy val simulacrumExample = (project in file("simulacrum-example")).dependsOn(simulacrum)
 
 libraryDependencies ++= Seq(
   "io.circe" %% "circe-core",
@@ -70,5 +65,15 @@ scalacOptions ++= Seq(
 //  "-Yliteral-types",
   "-language:existentials",
   "-language:higherKinds"
+)
+
+
+
+
+val tsecV = "0.0.1-M11"
+libraryDependencies ++= Seq(
+  "io.github.jmcardon" %% "tsec-hash-jca" % tsecV,
+  "io.github.jmcardon" %% "tsec-hash-bouncy" % tsecV,
+  "com.roundeights" %% "hasher" % "1.2.0",
 )
 
