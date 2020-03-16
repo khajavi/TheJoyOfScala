@@ -15,6 +15,7 @@ lazy val tsecSamples = (project in file("tsec-samples"))
 lazy val simulacrum = (project in file("simulacrum"))
 lazy val simulacrumExample = (project in file("simulacrum-example")).dependsOn(simulacrum)
 lazy val kindProjector = (project in file("kind-projector"))
+lazy val doobieSamples = (project in file("doobie-samples"))
 
 libraryDependencies ++= Seq(
   "io.circe" %% "circe-core",
