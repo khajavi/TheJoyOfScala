@@ -9,4 +9,6 @@ libraryDependencies ++= Seq(
   "org.tpolecat" %% "doobie-postgres" % doobieVersion,
   "org.tpolecat" %% "doobie-specs2" % doobieVersion,
   "org.tpolecat" %% "doobie-h2" % doobieVersion,
+  "eu.timepit" %% "refined" % "0.9.12",
+  "eu.timepit" %% "refined-cats" % "0.9.12", // optional
 )

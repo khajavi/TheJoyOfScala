@@ -1,8 +1,7 @@
 package tsec
 
-import tsec.hashing.jca.SHA256
-import zio.{ Task, ZIO}
 import tsec.common._
+import tsec.hashing.jca.SHA256
 
 object SecuritySample extends App {
   def hash(data: String): Array[Byte] = for {
