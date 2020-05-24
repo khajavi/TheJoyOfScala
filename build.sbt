@@ -17,7 +17,10 @@ lazy val simulacrumExample = (project in file("simulacrum-example")).dependsOn(s
 lazy val kindProjector = (project in file("kind-projector"))
 lazy val doobieSamples = (project in file("doobie-samples"))
 lazy val exampleGraalLanguage = (project in file("example-graal-language"))
+lazy val pureConfigSamples = project in file("pure-config")
 lazy val blog = (project in file("blog"))
+lazy val a = project in file("A")
+lazy val b = (project in file("B"))
 
 libraryDependencies ++= Seq(
   "io.circe" %% "circe-core",
@@ -59,7 +62,8 @@ addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVers
 
 libraryDependencies += "dev.zio" %% "zio" % "1.0.0-RC17"
 libraryDependencies += "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC10"
-
+libraryDependencies += "org.typelevel" %% "cats-mtl-core" % "0.7.0"
+libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.6"
 
 scalacOptions ++= Seq(
   "-Ywarn-value-discard",
@@ -75,4 +79,36 @@ scalacOptions ++= Seq(
   "-language:existentials",
   "-language:higherKinds"
 )
+
+
+libraryDependencies +=
+  "org.typelevel" %% "cats-tagless-macros" % "0.11"  //latest version indicated in the badge above
+
+Compile / scalacOptions ++= {
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, n)) if n >= 13 => "-Ymacro-annotations" :: Nil
+    case _ => Nil
+  }
+}
+
+libraryDependencies ++= {
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, n)) if n >= 13 => Nil
+    case _ => compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full) :: Nil
+  }
+}
+
+libraryDependencies += {
+  val version = scalaBinaryVersion.value match {
+    case "2.10" => "1.0.3"
+    case _ ⇒ "2.1.1"
+  }
+  "com.lihaoyi" % "ammonite" % version % "test" cross CrossVersion.full
+}
+
+sourceGenerators in Test += Def.task {
+  val file = (sourceManaged in Test).value / "amm.scala"
+  IO.write(file, """object amm extends App { ammonite.Main.main(args) }""")
+  Seq(file)
+}.taskValue
 
