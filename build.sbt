@@ -60,10 +60,15 @@ libraryDependencies ++= monix ++ refined
 addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
 
 
+lazy val fs2Version = "2.3.0"
+lazy val fs2 = Seq(
+  "co.fs2" %% "fs2-core" % fs2Version
+)
 libraryDependencies += "dev.zio" %% "zio" % "1.0.0-RC17"
 libraryDependencies += "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC10"
 libraryDependencies += "org.typelevel" %% "cats-mtl-core" % "0.7.0"
 libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.6"
+libraryDependencies ++= fs2
 
 scalacOptions ++= Seq(
   "-Ywarn-value-discard",

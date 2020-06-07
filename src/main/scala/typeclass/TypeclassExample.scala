@@ -2,7 +2,7 @@ package typeclass
 
 /**
  * I've wrote these steps from this article:
- *   https://miklos-martin.github.io/learn/fp/2017/08/31/typeclasses-roll-your-own.html
+ * https://miklos-martin.github.io/learn/fp/2017/08/31/typeclasses-roll-your-own.html
  */
 object TypeclassExample1 extends App {
 
@@ -102,12 +102,12 @@ object TypeclassExample4 extends App {
     def pure[A](a: A): F[A]
   }
 
-  def updateUser[F[_] : Database[F] : Monad[F]](userId: Int, newName: String): F[User] = {
+  def updateUser[F[_] : Database : Monad](userId: Int, newName: String): F[User] = {
     val db    = implicitly[Database[F]](???) // we should implement instances
     val monad = implicitly[Monad[F]](???) // we should implement instances
     monad.flatMap(db.load(userId)) { user =>
       val updated = user.copy(name = newName)
-      monad.flatMap(db.save(updated)) { - =>
+      monad.flatMap(db.save(updated)) { _ =>
         monad.pure(updated)
       }
     }
@@ -142,7 +142,7 @@ object TypeclassExample5 extends App {
     def apply[F[_]](): Monad[F] = implicitly[Monad[F]](???) // we should implement instances
   }
 
-  def updateUser[F[_] : Database[F] : Monad[F]](userId: Int, newName: String): F[User] = {
+  def updateUser[F[_] : Database : Monad](userId: Int, newName: String): F[User] = {
     val db    = Database[F]
     val monad = Monad[F]
     monad.flatMap(db.load(userId)) { user =>
@@ -198,10 +198,7 @@ object TypeclassExample6 extends App {
   import Database.syntax._
   import Monad.syntax._
 
-  def updateUser[F[_] : Database[F] : Monad[F]](userId: Int, newName: String): F[User] = {
-    implicit val database = implicitly[Database[F]](???)
-    implicit val monad    = implicitly[Monad[F]](???)
-
+  def updateUser[F[_] : Database : Monad](userId: Int, newName: String): F[User] = {
     flatMap(load(userId)) { user =>
       val updated = user.copy(name = newName)
       flatMap(save(updated)) { - =>
@@ -259,10 +256,7 @@ object TypeclassExample7 extends App {
   import Database.syntax._
   import Monad.syntax._
 
-  def updateUser[F[_] : Database[F] : Monad[F]](userId: Int, newName: String): F[User] = {
-    implicit val database = implicitly[Database[F]](???)
-    implicit val monad    = implicitly[Monad[F]](???)
-
+  def updateUser[F[_] : Database : Monad](userId: Int, newName: String): F[User] = {
     flatMap(load(userId)) { user =>
       val updated = user.copy(name = newName)
       map(save(updated))(_ => updated)
@@ -326,23 +320,18 @@ object TypeclassExample8 extends App {
   import Database.syntax._
   import Monad.syntax._
 
-  def updateUser[F[_] : Database[F] : Monad[F]](userId: Int, newName: String): F[User] = {
-    implicit val database = implicitly[Database[F]](???)
-    implicit val monad    = implicitly[Monad[F]](???)
-
+  def updateUser[F[_] : Database : Monad](userId: Int, newName: String): F[User] = {
     for {
       user <- load(userId)
       _ <- save(user)
     } yield user
   }
-
 }
 
 object TypeclassExample9 extends App {
-
-  import cats.{Id, Monad}
   import cats.syntax.flatMap._
   import cats.syntax.functor._
+  import cats.{Id, Monad}
 
   case class User(id: Int, name: String)
 

@@ -45,7 +45,7 @@ object AUXPattern2 {
 
   // Doesn't compile
   //illegal dependent method type: parameter appears in the type of another parameter in the same section or an earlier one
-  //def foo[T](t:T)(implicit f:Foo[T], m: Monoid[f.B] ): f.B = m.zero
+//  def foo[T](t:T)(implicit f:Foo[T], m: Monoid[f.B] ): f.B = m.zero
 }
 
 object AUXPattern3 extends App {
