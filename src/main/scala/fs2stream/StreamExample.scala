@@ -2,7 +2,9 @@ package fs2stream
 
 import cats.effect.concurrent.Deferred
 import cats.effect.{Concurrent, ContextShift, ExitCode, IO, IOApp, Sync}
+import cats.kernel.Monoid
 import fs2._
+import fs2.concurrent.Queue
 
 import scala.concurrent.ExecutionContext
 
@@ -240,21 +242,52 @@ object StreamTakeDropWhile extends App {
   println(s4)
 }
 
-object buffering extends App {
-  implicit val contextShift = IO.contextShift(ExecutionContext.global)
-  val q: IO[concurrent.Queue[IO, Int]] = fs2.concurrent.Queue.bounded[IO, Int](10000)
-  val s: Stream[IO, Int]               = Stream.range(1, 1000).covary[IO]
 
-  val result = for {
-    queue <- Stream.eval(q)
-    s1 = s.through(queue.enqueue)
-//    s2 = queue.dequeue.dropWhile(_ != 50).evalMap(x => IO(println(x)))
-    _ <- s1.drain
-  } yield (queue)
+object ScanExample extends App {
 
-  val id: IO[Int] = IO(50)
+  import cats.implicits._
 
-  val queue= result.compile.last.unsafeRunSync().get
-  println(queue.dequeue.evalMap(x => IO(println(s"ddd: $x"))).drain.compile.last.unsafeRunSync())
+  val s1 = Stream.range(1, 4)
+  println(s1.compile.toList)
+  val s2 = s1.scan(2)(_ + _)
+  println(s2.compile.toList)
+  val s3 = s1.fold(2)(_ + _)
+  println(s3.compile.toList)
+  val s4 = s1.foldMap(x => x)
+  println(s4.compile.toList)
+  val s5 = s1.scan1(_ + _)
+  println(s5.compile.toList)
+  val s6 = s1.scanMap(x => x)
+  println(s6.compile.toList)
+  val s7 = s1.map(x => x).scanMonoid
+  println(s7.compile.toList)
+  implicit val M = implicitly[Monoid[Int]]
+  val s8 = s1.scan(M.empty)(M.combine)
+  println(s8.compile.toList)
+}
 
+object Buffering extends IOApp {
+  val point: IO[Long] = IO(System.currentTimeMillis() / 2000)
+
+  import scala.concurrent.duration._
+
+  val s: Stream[IO, Long] = Stream.awakeEvery[IO](1.seconds).evalMap(_ => point)
+
+  def buffer(stream: Stream[IO, Long], queue: Queue[IO, Long]): Stream[IO, Unit] = for {
+    h <- stream.head
+    _ <- Stream.eval(IO(println(s"head: $h")))
+    _ <- Stream.eval(queue.enqueue1(h))
+    _ <- stream.tail.evalMap(queue.enqueue1)
+  } yield ()
+
+  val result: Stream[IO, Long] = for {
+    q <- Stream.eval(Queue.bounded[IO, Long](100))
+    _ <- Stream.eval(buffer(s, q).compile.drain.start)
+    p <- Stream.eval(point).delayBy(4.seconds)
+    i <- q.dequeue.dropWhile(_ != p)
+  } yield i
+
+  override def run(args: List[String]): IO[ExitCode] = {
+    result.evalMap(x => IO(println(x))).compile.drain.map(_ => ExitCode.Success)
+  }
 }
