@@ -45,12 +45,12 @@ object ParallelExample extends App {
     if (n.length >= 8) Right(Name(n))
     else Left(NonEmptyList.one(s"$n Does not have enough characters"))
   }
-
+  
+//  import cats.implicits._
 //  def parsePerson(ageString: String, nameString: String) =
 //    for {
 //      age <- parse(ageString)
 //      person <- (validateName(nameString), validateAge(age)).mapN(Person)
 //    } yield person
-
 
 }

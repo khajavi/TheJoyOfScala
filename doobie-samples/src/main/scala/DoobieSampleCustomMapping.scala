@@ -6,18 +6,23 @@ import doobie.implicits._
 import doobie.util.{Get, Put}
 import eu.timepit.refined._
 import eu.timepit.refined.api.Refined
-import eu.timepit.refined.collection.NonEmpty
+import eu.timepit.refined.boolean.{AllOf, And}
+import eu.timepit.refined.collection.{MaxSize, MinSize, NonEmpty}
+import shapeless.HNil
 
 object DoobieSampleCustomMapping extends IOApp {
   type Name = String Refined NonEmpty
-  implicit val nameGet: Get[Name] = Get[String].tmap(x => refineV[NonEmpty](x).getOrElse(throw new Exception("")))
+  implicit val nameGet: Get[Name] = Get[String].tmap(x =>
+    refineV[NonEmpty](x).getOrElse(throw new Exception(""))
+  )
   implicit val namePut: Put[Name] = Put[String].tcontramap(_.value)
 
   val program1 = 42.pure[ConnectionIO]
 
   import doobie.util.ExecutionContexts
 
-  implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContexts.synchronous)
+  implicit val cs: ContextShift[IO] =
+    IO.contextShift(ExecutionContexts.synchronous)
 
   val transactor: Resource[IO, H2Transactor[IO]] =
     for {
@@ -48,4 +53,15 @@ object DoobieSampleCustomMapping extends IOApp {
     }
 
   }
+}
+object AT extends App {
+import shapeless.{ ::, HNil }
+import eu.timepit.refined._
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined.boolean.{AllOf, And}
+import eu.timepit.refined.collection.{MaxSize, MinSize, NonEmpty}
+
+type Max35Predicate = And[MinSize[W.`0`.T], MaxSize[W.`35`.T]]
+type Max35Text = String Refined Max35Predicate
+
 }

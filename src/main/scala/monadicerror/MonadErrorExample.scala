@@ -1,6 +1,7 @@
 package monadicerror
 
 import cats.MonadError
+import cats.effect.{ExitCode, IO, IOApp, Sync}
 import cats.implicits.{catsStdInstancesForEither, catsStdInstancesForTry}
 
 import scala.util.Try
@@ -65,4 +66,24 @@ object MonadErrorExample2 extends App {
 
   val parsedEither5 = toJson[EitherF#R, Throwable](content)
   //  val parsedEither4 = toJson[EitherF[String]](content)
+}
+
+object MonadicErrorExample extends IOApp {
+
+  class Client[F[_]: Sync: MonadError[*[_], Throwable]] {
+    def toInt(str: String): F[Int] = {
+     str.toInt match {
+       case x if x > 0 => MonadError[F, Throwable].pure(x)
+       case x if x <= 0 => MonadError[F, Throwable].raiseError(new Exception("ha ha ha ha"))
+     }
+    }
+    
+    def a = toInt("3")
+  }
+  
+
+  override def run(args: List[String]): IO[ExitCode] = {
+    val c = new Client[IO]
+    c.toInt("0").attempt.flatMap(x => IO(println(x))).as(ExitCode.Success)
+  }
 }

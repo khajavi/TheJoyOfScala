@@ -13,7 +13,7 @@ object TraverseExample extends App {
   }
 
   println(
-    numbers1.traverse(biggerThanZero),
+    numbers1.traverse(x => biggerThanZero(x)),
     numbers1.traverse(identity),
   )
 

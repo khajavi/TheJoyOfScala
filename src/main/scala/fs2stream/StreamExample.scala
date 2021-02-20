@@ -13,8 +13,7 @@ object StreamExample extends App {
   implicit lazy val ioContextShift: ContextShift[IO] = IO.contextShift(ec)
 
   val stream =
-    fs2
-      .Stream
+    fs2.Stream
       .bracket(IO {
         println("started");
         4
@@ -36,29 +35,35 @@ object StreamExample extends App {
   //    .attempt
   //    .toList.foreach(println)
 
-
   def tk[F[_], O](n: Long): Pipe[F, O, O] =
-    in => in.scanChunksOpt[Long, O, O](n) { state: Long =>
-      if (state <= 0) None
-      else Some(c => c.size match {
-        case m if m < n => (n - m, c)
-        case m => (0, c.take(n.toInt))
-      })
-    }
+    in =>
+      in.scanChunksOpt[Long, O, O](n) { state: Long =>
+        if (state <= 0) None
+        else
+          Some(c =>
+            c.size match {
+              case m if m < n => (n - m, c)
+              case m          => (0, c.take(n.toInt))
+            }
+          )
+      }
 
   val s5 = Stream(1, 2, 3, 4, 5, 6, 7).through(tk(3)).toList
   println(s5)
 
-
   val s6 =
     Stream(1, 2, 3)
-      .merge(Stream.eval(IO {
-        Thread.sleep(3000);
-        4
-      }).merge(Stream.eval(IO {
-        Thread.sleep(2000);
-        5
-      })))
+      .merge(
+        Stream
+          .eval(IO {
+            Thread.sleep(3000);
+            4
+          })
+          .merge(Stream.eval(IO {
+            Thread.sleep(2000);
+            5
+          }))
+      )
       .compile
       .toVector
       .unsafeRunSync()
@@ -67,7 +72,7 @@ object StreamExample extends App {
 
 object InterruptionExample extends App {
   implicit val contextShift = IO.contextShift(ExecutionContext.global)
-  implicit val timer        = IO.timer(ExecutionContext.global)
+  implicit val timer = IO.timer(ExecutionContext.global)
 
   import scala.concurrent.duration._
 
@@ -77,7 +82,9 @@ object InterruptionExample extends App {
         Stream.eval(switch.complete(())).delayBy(5.seconds)
 
       val program =
-        Stream.repeatEval(IO(println(java.time.LocalTime.now()))).metered(1.seconds)
+        Stream
+          .repeatEval(IO(println(java.time.LocalTime.now())))
+          .metered(1.seconds)
 
       program
         .interruptWhen(switch.get.attempt)
@@ -92,15 +99,15 @@ object SynchronousEffects extends App {
     println("Booom!!!")
   }
 
-  val s   = Stream.eval_(IO(destroyUniverse())) ++
+  val s = Stream.eval_(IO(destroyUniverse())) ++
     Stream("moving on")
   val res = s.compile.toVector.unsafeRunSync()
   println(res)
 
   println("##############")
 
-  val T    = Sync[IO]
-  val s2   = Stream.eval_(T.delay(destroyUniverse())) ++
+  val T = Sync[IO]
+  val s2 = Stream.eval_(T.delay(destroyUniverse())) ++
     Stream("... moving on")
   val res2 = s2.compile.toVector.unsafeRunSync()
   println(res2)
@@ -109,7 +116,10 @@ object SynchronousEffects extends App {
 object AsynchronousEffects extends App {
 
   trait Connection {
-    def readBytes(onSuccess: Array[Byte] => Unit, onFailure: Throwable => Unit): Unit
+    def readBytes(
+        onSuccess: Array[Byte] => Unit,
+        onFailure: Throwable => Unit
+    ): Unit
 
     def readBytesE(onComplete: Either[Throwable, Array[Byte]] => Unit): Unit =
       readBytes(bs => onComplete(Right(bs)), e => onComplete(Left(e)))
@@ -118,13 +128,17 @@ object AsynchronousEffects extends App {
   }
 
   val c = new Connection {
-    override def readBytes(onSuccess: Array[Byte] => Unit, onFailure: Throwable => Unit): Unit = {
+    override def readBytes(
+        onSuccess: Array[Byte] => Unit,
+        onFailure: Throwable => Unit
+    ): Unit = {
       Thread.sleep(200)
       onSuccess(Array(0, 1, 3))
     }
   }
 
-  val bytes: IO[Array[Byte]] = cats.effect.Async[IO].async[Array[Byte]](c.readBytesE)
+  val bytes: IO[Array[Byte]] =
+    cats.effect.Async[IO].async[Array[Byte]](c.readBytesE)
 
   val res = Stream.eval(bytes).map(_.toList).compile.toVector.unsafeRunSync()
   println(res)
@@ -138,7 +152,7 @@ object NothingExample extends App {
   val res: Int = oneOrThrow(2)
   println(res)
 
-  val int   : Int    = throw new Exception("fake Int")
+  val int: Int = throw new Exception("fake Int")
   val string: String = throw new Exception("fake String")
 
   case class User()
@@ -148,7 +162,6 @@ object NothingExample extends App {
   def equalsOrFail[A](l: A, r: A): A =
     if (l == r) l
     else throw new Exception(s"$l is not $r")
-
 
   sealed abstract class Optional[+A]
 
@@ -169,13 +182,16 @@ object StreamInterruption extends App {
 
   case object Err extends Throwable
 
-  val s1: List[Int] = (Stream(1) ++ Stream(2).map(_ => throw Err)).take(1).toList
+  val s1: List[Int] =
+    (Stream(1) ++ Stream(2).map(_ => throw Err)).take(1).toList
   println(s1)
 
-  val s2: List[Int] = (Stream(1) ++ Stream.raiseError[IO](Err)).take(1).compile.toList.unsafeRunSync()
+  val s2: List[Int] = (Stream(1) ++ Stream
+    .raiseError[IO](Err)).take(1).compile.toList.unsafeRunSync()
   println(s2)
 
-  val s3: List[Int] = Stream(1).covary[IO]
+  val s3: List[Int] = Stream(1)
+    .covary[IO]
     .onFinalize(IO(println("finilizing")))
     .compile
     .toList
@@ -207,22 +223,28 @@ object MergeExample extends App {
 
 object FIFOExample extends IOApp {
 
-  import cats.implicits._
   import fs2.concurrent.Queue
 
-  class Buffering[F[_]](q1: Queue[F, Int], q2: Queue[F, Int])(implicit val C: Concurrent[F]) {
+  class Buffering[F[_]](q1: Queue[F, Int], q2: Queue[F, Int])(implicit
+      val C: Concurrent[F]
+  ) {
     def start: Stream[F, Unit] =
       q2.dequeue.evalMap(n =>
         C.delay(println(s"pulling out $n from Queue #2"))
-      ) concurrently Stream.range(0, 10)
+      ) concurrently Stream
+        .range(0, 10)
         .covary[F]
         .through(q2.enqueue)
   }
 
   override def run(args: List[String]): IO[ExitCode] = {
     val stream = for {
-      q1 <- Stream.eval(Queue.bounded[IO, Int](1)).onFinalize(IO(println("hahaha")))
-      q2 <- Stream.eval(Queue.bounded[IO, Int](100)).onFinalize(IO(println("q2 finilized")))
+      q1 <-
+        Stream.eval(Queue.bounded[IO, Int](1)).onFinalize(IO(println("hahaha")))
+      q2 <-
+        Stream
+          .eval(Queue.bounded[IO, Int](100))
+          .onFinalize(IO(println("q2 finilized")))
       bp = new Buffering[IO](q1, q2)
       _ <- bp.start.drain
     } yield ()
@@ -231,7 +253,7 @@ object FIFOExample extends IOApp {
 }
 
 object StreamTakeDropWhile extends App {
-  val s  = Stream.range(1, 10)
+  val s = Stream.range(1, 10)
   val s1 = s.dropWhile(_ != 5).toList
   println(s1)
   val s2 = s.dropThrough(_ != 5).toList
@@ -241,7 +263,6 @@ object StreamTakeDropWhile extends App {
   val s4 = s.takeThrough(_ != 5).toList
   println(s4)
 }
-
 
 object ScanExample extends App {
 
@@ -273,12 +294,16 @@ object Buffering extends IOApp {
 
   val s: Stream[IO, Long] = Stream.awakeEvery[IO](1.seconds).evalMap(_ => point)
 
-  def buffer(stream: Stream[IO, Long], queue: Queue[IO, Long]): Stream[IO, Unit] = for {
-    h <- stream.head
-    _ <- Stream.eval(IO(println(s"head: $h")))
-    _ <- Stream.eval(queue.enqueue1(h))
-    _ <- stream.tail.evalMap(queue.enqueue1)
-  } yield ()
+  def buffer(
+      stream: Stream[IO, Long],
+      queue: Queue[IO, Long]
+  ): Stream[IO, Unit] =
+    for {
+      h <- stream.head
+      _ <- Stream.eval(IO(println(s"head: $h")))
+      _ <- Stream.eval(queue.enqueue1(h))
+      _ <- stream.tail.evalMap(queue.enqueue1)
+    } yield ()
 
   val result: Stream[IO, Long] = for {
     q <- Stream.eval(Queue.bounded[IO, Long](100))
@@ -289,5 +314,65 @@ object Buffering extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
     result.evalMap(x => IO(println(x))).compile.drain.map(_ => ExitCode.Success)
+  }
+}
+
+object Workaround extends IOApp {
+  override def run(args: List[String]): IO[ExitCode] = {
+    Stream(1, 2, 3, 3, 4, 5, 6, 346)
+      .evalTap(x => IO(println(x)))
+      .compile
+      .drain
+      .map(_ => ExitCode.Success)
+  }
+}
+
+object B {
+  import java.net.ServerSocket
+  import java.util.concurrent.Executors
+
+  import cats.effect._
+  import cats.effect.concurrent.MVar
+  import cats.effect.syntax.all._
+  import cats.implicits._
+
+  import scala.concurrent.ExecutionContext
+
+  def serve[F[_]: Concurrent: ContextShift](
+      serverSocket: ServerSocket,
+      stopFlag: MVar[F, Unit]
+  )(implicit clientsExecutionContext: ExecutionContext): F[Unit] = ???
+
+  def server[F[_]: Concurrent: ContextShift](
+      serverSocket: ServerSocket
+  ): F[ExitCode] = {
+
+    val clientsThreadPool = Executors.newCachedThreadPool()
+    implicit val clientsExecutionContext =
+      ExecutionContext.fromExecutor(clientsThreadPool)
+
+    for {
+      stopFlag <- MVar[F].empty[Unit]
+      serverFiber <-
+        serve(serverSocket, stopFlag).start // Server runs on its own Fiber
+      _ <- stopFlag.read // Blocked until 'stopFlag.put(())' is run
+      _ <-
+        Sync[F].delay(
+          clientsThreadPool.shutdown()
+        ) // Shutting down clients pool
+      _ <- serverFiber.cancel.start // Stopping server
+    } yield ExitCode.Success
+  }
+}
+
+object G extends IOApp {
+  override def run(args: List[String]): IO[ExitCode] = {
+    val stream =
+      Stream(1, 2, 3) ++ Stream.eval(IO(println("hello"))).drain ++ Stream(
+        4,
+        5,
+        6
+      )
+    stream.evalTap(x => IO(println(x))).compile.drain.as(ExitCode.Success)
   }
 }

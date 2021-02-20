@@ -1,5 +1,8 @@
 package recursion
 
+import cats.Semigroup
+import cats.kernel.Monoid
+
 import scala.annotation.tailrec
 
 object TailRecursiveFunctions extends App {
@@ -99,4 +102,44 @@ object TreeRecursionExample extends App {
 
     loop(List(tree), seed)
   }
+}
+
+object TreeRecursion2Example extends App {
+
+  import cats.implicits._
+
+  val _3 = Semigroup[Int].combine(1, 2)
+  assert(_3 == 3)
+  val _64 = Semigroup[Int => Int].combine(_ + 1, _ * 10).apply(6)
+  assert(_64 == 67)
+  val _4 = Semigroup[Int].combineN(1, 4)
+  assert(_4 == 4)
+
+  val combine = Monoid[String].combineAll(List("a", "b", "c"))
+  val M       = implicitly[Monoid[String]]
+  val empty   = Monoid[String].empty
+  val x       = "A"
+  assert(M.combine(x, empty) == M.combine(empty, x))
+  assert(M.combine(x, empty) == x)
+  assert(M.combineAll(Seq("A", "B")) == "AB")
+  
+  val l = List(1,2,3,4,5)
+  l.foldMap(identity)
+  
+
+}
+
+object ListFoldExample extends App {
+  
+  val list = List(1,2,3,4,5)
+  
+  def foldList[T, S](list: List[T], seed: S)(f: (S, T) => S): S = {
+    list match {
+      case ::(head, next) => foldList(next, f(seed, head))(f)
+      case Nil => seed
+    } 
+  }
+
+  println(foldList(list, 0)((x, y) => x + y))
+
 }

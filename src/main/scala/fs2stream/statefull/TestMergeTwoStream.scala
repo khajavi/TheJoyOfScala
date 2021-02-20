@@ -5,11 +5,10 @@ import cats.effect.{ExitCode, IO, IOApp}
 import scala.language.postfixOps
 
 object TestMergeTwoStream extends IOApp {
-
   import fs2._
 
   override def run(args: List[String]): IO[ExitCode] = {
-    def firstStream(to: Int): Stream[IO, Int] = fs2.Stream.range(1, to).covary[IO].merge()
+    def firstStream(to: Int): Stream[IO, Int] = fs2.Stream.range(1, to).covary[IO]
 
     def secondStream: Stream[IO, Int] = fs2.Stream.range(6, 20) //.evalTap(x => IO(println(s"x: $x")))
 
@@ -28,8 +27,9 @@ object TestMergeTwoStream extends IOApp {
             case None =>
               Pull.done
           }
-        } yield r
+        } yield (r)
       }
+
       s => go(s, firstTry = true).stream
     }
 

@@ -47,9 +47,9 @@ object KindProjectorSample extends App {
 }
 
 
-object TypeConstructor extends App {
-  type A[B] = Option[B][String]
-
-  val a: A[String] = Some("foo")
-  println(a)
-}
+//object TypeConstructor extends App {
+//  type A[B] = Option[B][String]
+//
+//  val a: A[String] = Some("foo")
+//  println(a)
+//}

@@ -10,6 +10,9 @@ libraryDependencies += "com.chuusai" %% "shapeless" % "2.3.3"
 
 val circeVersion = "0.12.3"
 
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.2"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.2" % "test"
+libraryDependencies += "junit" % "junit" % "4.12" % "test"
 
 lazy val tsecSamples = (project in file("tsec-samples"))
 lazy val simulacrum = (project in file("simulacrum"))
@@ -29,6 +32,14 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-parser"
 ).map(_ % circeVersion)
 
+val http4sVersion = "0.21.5"
+
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-dsl" % http4sVersion,
+  "org.http4s" %% "http4s-circe" % http4sVersion,
+  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+  "org.http4s" %% "http4s-blaze-client" % http4sVersion
+)
 
 libraryDependencies ++= Seq(
   "eu.timepit" %% "refined" % "0.9.12",
@@ -44,13 +55,13 @@ libraryDependencies ++= Seq(
 )
 
 val monixVersion = "3.1.0"
-val monix        = Seq(
+val monix = Seq(
   "io.monix" %% "monix",
   "io.monix" %% "monix-eval"
 ).map(_ % monixVersion)
 
 val refinedVersion = "0.9.10"
-val refined        = Seq(
+val refined = Seq(
   "eu.timepit" %% "refined",
   "eu.timepit" %% "refined-cats"
 ).map(_ % refinedVersion)
@@ -70,24 +81,32 @@ libraryDependencies += "org.typelevel" %% "cats-mtl-core" % "0.7.0"
 libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.6"
 libraryDependencies ++= fs2
 
+val monocleVersion = "2.0.4"
+
+libraryDependencies ++= Seq(
+  "com.github.julien-truffaut" %%  "monocle-core"  % monocleVersion,
+  "com.github.julien-truffaut" %%  "monocle-macro" % monocleVersion,
+  "com.github.julien-truffaut" %%  "monocle-law"   % monocleVersion % "test"
+)
+
 scalacOptions ++= Seq(
   "-Ywarn-value-discard",
   "-Xfatal-warnings",
-//  "-Xfuture",
-//  "-Ypartial-unification",
+  //  "-Xfuture",
+  //  "-Ypartial-unification",
   "-unchecked",
   "-deprecation",
   "-encoding",
   "UTF-8",
-//  "-feature",
-//  "-Yliteral-types",
+    "-feature",
+  //  "-Yliteral-types",
   "-language:existentials",
   "-language:higherKinds"
 )
 
 
 libraryDependencies +=
-  "org.typelevel" %% "cats-tagless-macros" % "0.11"  //latest version indicated in the badge above
+  "org.typelevel" %% "cats-tagless-macros" % "0.11" //latest version indicated in the badge above
 
 Compile / scalacOptions ++= {
   CrossVersion.partialVersion(scalaVersion.value) match {

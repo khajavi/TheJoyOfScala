@@ -6,7 +6,8 @@ object EqtesadeNovinToCsv extends App {
   def jalali2gregorian(jalali: String): String = {
     import scala.language.postfixOps
     import sys.process._
-    val bin       = "/home/milad/ssd/.linuxbrew/bin/jalalim"
+//    val bin       = "/home/milad/ssd/.linuxbrew/bin/jalalim"
+    val bin = "/home/milad/.linuxbrew/bin/jalalim"
     val gregorian = s"$bin togregorian $jalali" !!
 
     gregorian.trim
